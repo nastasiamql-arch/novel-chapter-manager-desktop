@@ -24,7 +24,7 @@
       </nav>
       <div class="sidebar-bottom">
         <div class="privacy-note"><span>◉</span><div><strong>Private by design</strong><p>แยกบทบนอุปกรณ์ของคุณ ไม่มีเซิร์ฟเวอร์รับต้นฉบับ</p></div></div>
-        <div class="version">VERSION 2.0.0-alpha.2 · TH</div>
+        <div class="version">VERSION 2.0.0-alpha.3 · TH</div>
       </div>
     </aside>
     <div class="main-area">
@@ -61,8 +61,8 @@
           <div class="page-heading"><div><span class="eyebrow">GOOGLE WORKSPACE</span><h1>หนึ่งบท ต่อหนึ่งแท็บ <em>บน Google Docs</em></h1><p>สร้างเอกสารใหม่ หรือเพิ่มเฉพาะบทที่ยังไม่มีลงในเอกสารเดิม</p></div></div>
           <div class="google-steps"><span class="mini-step">1. ตั้งค่า OAuth</span><span>→</span><span class="mini-step">2. เชื่อม Google</span><span>→</span><span class="mini-step">3. สร้างใหม่ / เติมบท</span></div>
           <div class="card page-card"><div class="card-top"><span class="step">04</span><div><h2>เชื่อมบัญชี Google</h2><p>ใช้การอนุญาต OAuth จาก Google ไม่ต้องกรอกรหัสผ่านในเว็บ</p></div></div>
-            <label for="googleClientId">OAuth 2.0 Client ID (Desktop app)</label><input class="field" id="googleClientId" placeholder="123456789-xxxxx.apps.googleusercontent.com" spellcheck="false"/><p class="field-help"><strong>สำคัญ:</strong> ต้องใช้ OAuth Client ID ประเภท <strong>Desktop app</strong> เท่านั้น หากเคยใช้แบบ Web application ให้สร้าง Client ใหม่ (ไม่ต้องตั้งค่า Redirect URI หรือ JavaScript Origin) — <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">เปิด Google Cloud Console ↗</a></p>
-            <div class="connect-row"><button class="btn btn-primary" id="connectBtn">◈ เชื่อม Google Account</button><button class="btn btn-subtle" id="disconnectBtn">ยกเลิกการเชื่อม</button><span id="connectStatus" class="connect-status">ยังไม่ได้เชื่อม</span></div>
+            <label for="googleClientId">OAuth 2.0 Client ID (Desktop app)</label><input class="field" id="googleClientId" placeholder="123456789-xxxxx.apps.googleusercontent.com" spellcheck="false"/><p class="field-help"><strong>สำคัญ:</strong> เลือกไฟล์ OAuth JSON ประเภท <strong>Desktop app</strong> จาก Google Cloud เพียงครั้งเดียว (มี client_id และ client_secret) โปรแกรมเข้ารหัสข้อมูลในเครื่องและเชื่อมอัตโนมัติครั้งต่อไป — <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">เปิด Google Cloud Console ↗</a></p>
+            <div class="connect-row"><button class="btn btn-subtle" id="importOAuthBtn" type="button">เลือก OAuth Desktop JSON</button><button class="btn btn-primary" id="connectBtn">◈ เชื่อม Google Account</button><button class="btn btn-subtle" id="disconnectBtn">ยกเลิกการเชื่อม</button><span id="connectStatus" class="connect-status">ยังไม่ได้เชื่อม</span></div>
             <div class="divider"></div>
             <div class="google-modes" role="group" aria-label="เลือกวิธีส่งเข้า Google Docs">
               <label class="google-mode"><input type="radio" name="googleMode" value="new" checked/><span><strong>สร้าง Google Docs ใหม่</strong><small>สร้างเล่มใหม่ และแยกแท็บตามที่เลือก</small></span></label>

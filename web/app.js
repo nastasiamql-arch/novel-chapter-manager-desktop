@@ -202,10 +202,32 @@ async function connect(){
   const btn=$('connectBtn');btn.disabled=true;$('connectStatus').textContent='กำลังเชื่อม...';
   try{
     const clientId=$('googleClientId').value.trim();
-    if(clientId){try{localStorage.setItem('novel-google-client-id',clientId);}catch{}}
+    // Client ID and refresh token are managed by the encrypted desktop credential store.
     await window.GooglePublisher.connect(clientId);
     $('connectStatus').textContent='เชื่อม Google แล้ว ✓';$('connectStatus').classList.add('ok');toast('อนุญาต Google Docs เรียบร้อย');
   }catch(e){$('connectStatus').textContent='เชื่อมไม่สำเร็จ';$('connectStatus').classList.remove('ok');showError($('googleFeedback'),e.message);}finally{btn.disabled=false;}
+}
+async function importGoogleCredentials(){
+  try{
+    if(!window.NovelDesktop?.googleImport)throw Error('ใช้ได้เฉพาะ Desktop app');
+    const result=await window.NovelDesktop.googleImport();
+    if(result.cancelled)return;
+    $('googleClientId').value=result.clientId;
+    $('connectStatus').textContent='นำเข้า OAuth แล้ว · กดเชื่อม Google';
+    $('connectStatus').classList.remove('ok');
+    toast('นำเข้าไฟล์ OAuth Desktop เรียบร้อย');
+  }catch(e){showError($('googleFeedback'),e.message);}
+}
+async function restoreGoogle(){
+  if(!window.GooglePublisher.restore)return;
+  try{
+    const status=await window.GooglePublisher.restore();
+    if(status.clientId)$('googleClientId').value=status.clientId;
+    $('connectStatus').textContent=status.connected?'เชื่อม Google อัตโนมัติแล้ว ✓':
+      (status.configured?'มี OAuth แล้ว · กดเชื่อม Google':'ยังไม่ได้ตั้งค่า Google');
+    $('connectStatus').classList.toggle('ok',!!status.connected);
+    if(status.message)showError($('googleFeedback'),status.message);
+  }catch(e){showError($('googleFeedback'),'กู้คืน Google ไม่สำเร็จ: '+e.message);}
 }
 function googleMode(){return document.querySelector('input[name="googleMode"]:checked')?.value||'new';}
 function refreshGoogleMode(){
@@ -304,12 +326,13 @@ $('editorOverlay').addEventListener('click',e=>{if(e.target===$('editorOverlay')
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.currentEdit)closeEditor();});
 $('downloadBtn').addEventListener('click',download);
 $('connectBtn').addEventListener('click',connect);
+$('importOAuthBtn').addEventListener('click',importGoogleCredentials);
 $('disconnectBtn').addEventListener('click',()=>{window.GooglePublisher.disconnect();$('connectStatus').textContent='ยกเลิกการเชื่อมแล้ว';$('connectStatus').classList.remove('ok');toast('ยกเลิกการเชื่อมในหน้าเว็บแล้ว');});
 $('publishBtn').addEventListener('click',publish);
 $('inspectDocBtn').addEventListener('click',inspectDoc);
 for(const radio of document.querySelectorAll('input[name="googleMode"]'))radio.addEventListener('change',refreshGoogleMode);
 $('existingDocUrl').addEventListener('input',()=>{$('appendPreview').classList.add('hidden');});
 refreshGoogleMode();
-try{$('googleClientId').value=localStorage.getItem('novel-google-client-id')||'';}catch{}
+void restoreGoogle();
 void restoreWorkspace();
 })();

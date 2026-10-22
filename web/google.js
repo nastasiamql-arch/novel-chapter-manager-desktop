@@ -49,6 +49,13 @@ async function connect(clientId){
     } catch(e){reject(e);}
   });
 }
+async function restore(){
+  if(!root.NovelDesktop?.googleStatus)return false;
+  const status=await root.NovelDesktop.googleStatus();
+  token=status.connected?'desktop-session':'';
+  connectedClientId=status.clientId||'';
+  return status;
+}
 function disconnect(){token='';connectedClientId='';if(root.NovelDesktop?.googleDisconnect)void root.NovelDesktop.googleDisconnect();}
 async function api(url,method='GET',body=null){
   if(root.NovelDesktop?.googleRequest){
@@ -289,5 +296,5 @@ async function append(chapters,documentInput,onProgress=()=>{}){
   return {docs:[item],plan};
 }
 
-root.GooglePublisher={connect,disconnect,publish,inspectAppend,append,documentIdFrom,prepare:loadGoogleIdentity,get isConnected(){return Boolean(token)},get clientId(){return connectedClientId}};
+root.GooglePublisher={connect,disconnect,restore,publish,inspectAppend,append,documentIdFrom,prepare:loadGoogleIdentity,get isConnected(){return Boolean(token)},get clientId(){return connectedClientId}};
 })(window);
