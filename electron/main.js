@@ -14,6 +14,8 @@ async function ensureGoogleToken(){
   if(googleToken&&Date.now()<googleExpiry-60000)return googleToken;
   const saved=await getCredentials();
   if(!saved?.refresh_token)throw Error('กรุณาเชื่อม Google ใหม่');
+  // A v1 refresh token was granted only drive.file; do not silently reuse it after the scope upgrade.
+  if(saved.version!==2)throw Error('แอปอัปเดตสิทธิ์ Google Docs แล้ว กรุณากดเชื่อม Google Account อีกครั้งเพื่ออนุญาตให้อ่านเอกสารเดิม (ไม่ต้องนำเข้า OAuth JSON ใหม่)');
   try{
     const data=await refresh(saved);
     if(data.refresh_token)saved.refresh_token=data.refresh_token;
@@ -89,7 +91,7 @@ app.whenReady().then(() => {
       if(clientId && clientId!==saved.client_id)throw Error('Client ID ไม่ตรงกับไฟล์ OAuth ที่นำเข้า โปรดเลือกไฟล์ JSON ให้ถูกต้อง');
       const data=await authorizeDesktop(saved,url=>shell.openExternal(url));
       if(!data.refresh_token)throw Error('Google ไม่ส่ง refresh_token กรุณาถอนสิทธิ์เดิมแล้วเชื่อมใหม่');
-      await persist({...saved,refresh_token:data.refresh_token});
+      await persist({...saved,version:2,refresh_token:data.refresh_token});
       googleToken=data.access_token;googleExpiry=Date.now()+(Number(data.expires_in)||3600)*1000;
       return {connected:true};
     }finally{connecting=false;}
@@ -115,6 +117,7 @@ app.whenReady().then(() => {
     if(!response.ok){
       const message=(await response.text()).slice(0,1500);let detail=message;
       try{detail=JSON.parse(message).error?.message||message;}catch{}
+      if(response.status===404)throw Error('Google API 404: ไม่พบเอกสาร หรือบัญชี Google ที่เชื่อมไม่มีสิทธิ์เข้าถึงไฟล์นี้ กรุณาตรวจลิงก์ บัญชี และสิทธิ์แชร์ หากอัปเดตโปรแกรมจากเวอร์ชันเก่า ให้กดเชื่อม Google อีกครั้ง (Google: '+String(detail).slice(0,250)+')');
       throw Error('Google API '+response.status+': '+String(detail).slice(0,650));
     }
     return response.status===204?{}:response.json();
