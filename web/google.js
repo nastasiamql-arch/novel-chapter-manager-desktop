@@ -30,9 +30,8 @@ async function connect(clientId){
   if(root.NovelDesktop?.googleConnect){
     token='';
     const response=await root.NovelDesktop.googleConnect(clientId.trim());
-    if(!response?.access_token)throw new Error('Google ไม่ได้ส่ง Access Token กลับมา');
-    token=response.access_token;
-    connectedClientId=clientId.trim();
+    if(!response?.connected)throw new Error('Google ไม่อนุญาตการเข้าถึง');
+    token='desktop-session'; connectedClientId=clientId.trim();
     return true;
   }
   if(!['http:','https:'].includes(location.protocol)) throw new Error('เชื่อม Google ต้องเปิดเว็บผ่าน http://localhost หรือ HTTPS ไม่ใช่ไฟล์ในเครื่อง');
@@ -50,8 +49,13 @@ async function connect(clientId){
     } catch(e){reject(e);}
   });
 }
-function disconnect(){token='';connectedClientId='';}
+function disconnect(){token='';connectedClientId='';if(root.NovelDesktop?.googleDisconnect)void root.NovelDesktop.googleDisconnect();}
 async function api(url,method='GET',body=null){
+  if(root.NovelDesktop?.googleRequest){
+    if(!token)throw new Error('กรุณาเชื่อม Google ใหม่');
+    try{return await root.NovelDesktop.googleRequest(url,method,body);}
+    catch(e){if(String(e.message).includes('Google API 401:'))disconnect();throw e;}
+  }
   if(!token)throw new Error('กรุณาเชื่อม Google ใหม่ (โทเค็นหมดอายุหรือยังไม่ได้เชื่อม)');
   let response;
   try{response=await fetch(url,{method,headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});}

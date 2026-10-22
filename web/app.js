@@ -6,6 +6,44 @@ const state={results:[],query:'',currentEdit:null,busy:false,sourceSeq:0,uploadL
 const esc=s=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const chapterList=()=>state.results.flatMap(x=>x.chapters);
 const report=()=>C.audit(chapterList(),state.results);
+let saveTimer=null,restoring=true;
+function snapshot(){
+  return {version:1,sourceSeq:state.sourceSeq,sources:state.results.map(r=>({
+    id:r.source.id,name:r.source.name,kind:r.source.kind,text:r.source.text,
+    chapters:r.chapters.map(ch=>({sourceOrder:ch.sourceOrder,title:ch.title,text:ch.text,included:ch.included}))
+  }))};
+}
+function scheduleSave(){
+  if(restoring||!window.NovelDesktop?.workspaceSave)return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try {await window.NovelDesktop.workspaceSave(snapshot());}
+    catch(e){const notice=$('auditNotice');notice.classList.remove('hidden');notice.textContent='บันทึกงานอัตโนมัติไม่สำเร็จ: '+e.message;}
+  },700);
+}
+async function restoreWorkspace(){
+  try{
+    const saved=await window.NovelDesktop?.workspaceLoad?.();
+    if(saved){
+      const results=[];
+      for(const src of saved.sources){
+        const result=C.parseSource({id:src.id,name:src.name,kind:src.kind,text:src.text});
+        for(let i=0;i<result.chapters.length;i++){
+          const ch=result.chapters[i],modified=src.chapters[i];
+          ch.title=modified.title;ch.text=modified.text;ch.included=modified.included;
+          ch.edited=ch.originalText!==ch.text||ch.originalTitle!==ch.title;
+          const check=C.parseSource({id:'check',name:'check.txt',text:ch.text});
+          ch.issues=check.chapters.length===1&&check.chapters[0].number===ch.number
+            ?check.chapters[0].issues:['พบหัวบทเกินหรือเลขบทในข้อความไม่ตรงกับเลขบทเดิม'];
+          ch.hasEnd=check.chapters.length===1?check.chapters[0].hasEnd:false;
+        }
+        results.push(result);
+      }
+      state.results=results;state.sourceSeq=saved.sourceSeq;
+    }
+  }catch(e){toast('โหลดโปรเจกต์ไม่สำเร็จ: '+e.message);}
+  finally{restoring=false;render();}
+}
 const toast=message=>{const el=$('toast');el.textContent=message;el.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.add('hidden'),3900);};
 const showError=(target,message)=>{target.textContent=message;target.className='inline-feedback error';};
 const showSuccess=(target,message)=>{target.textContent=message;target.className='inline-feedback success';};
@@ -50,6 +88,7 @@ function render(){
   </div>`).join(''):`<div class="empty-state"><div class="empty-art">▤</div><h3>${all.length?'ไม่มีบทที่ตรงกับคำค้น':'ยังไม่มีบทนิยาย'}</h3><p>${all.length?'ลองเปลี่ยนคำค้นหา':'เพิ่มไฟล์หรือวางข้อความด้านบน แล้วระบบจะแยกบทให้ทันที'}</p></div>`;
   $('listCount').textContent=all.length?`แสดง ${visible.length} จาก ${all.length} บท · เลือก ${a.active.length} บท`:'ยังไม่ได้นำเข้า';
   refreshExport();
+  scheduleSave();
 }
 function addSource(name,text,kind){
   const source={id:'source'+(++state.sourceSeq),name,kind,text};
@@ -272,5 +311,5 @@ for(const radio of document.querySelectorAll('input[name="googleMode"]'))radio.a
 $('existingDocUrl').addEventListener('input',()=>{$('appendPreview').classList.add('hidden');});
 refreshGoogleMode();
 try{$('googleClientId').value=localStorage.getItem('novel-google-client-id')||'';}catch{}
-render();
+void restoreWorkspace();
 })();
