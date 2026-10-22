@@ -1,0 +1,34 @@
+name: Desktop validation and Windows installer
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --ignore-scripts
+      - run: npm test
+      - run: node --check electron/main.js && node --check electron/preload.js && node --check electron/oauth.js
+  windows-installer:
+    runs-on: windows-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install
+      - run: npm run dist:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: novel-chapter-manager-windows
+          path: dist/*.exe
+          if-no-files-found: error
