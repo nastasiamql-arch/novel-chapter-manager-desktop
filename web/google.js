@@ -296,5 +296,5 @@ async function append(chapters,documentInput,onProgress=()=>{}){
   return {docs:[item],plan};
 }
 
-root.GooglePublisher={connect,disconnect,restore,publish,inspectAppend,append,documentIdFrom,prepare:loadGoogleIdentity,get isConnected(){return Boolean(token)},get clientId(){return connectedClientId}};
+root.GooglePublisher={tabName,connect,disconnect,restore,publish,inspectAppend,append,documentIdFrom,prepare:loadGoogleIdentity,get isConnected(){return Boolean(token)},get clientId(){return connectedClientId}};
 })(window);
