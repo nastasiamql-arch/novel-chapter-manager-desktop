@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="color-scheme" content="light"/>
+  <title>Novel Chapter Manager — จัดการบทนิยาย</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <script defer src="../node_modules/jszip/dist/jszip.min.js"></script>
+  <script defer src="core.js"></script>
+  <script defer src="google.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">N<span>✦</span></div><div><strong>Novel Chapter</strong><small>MANAGER / STUDIO</small></div></div>
+      <div class="side-section-label">พื้นที่ทำงาน</div>
+      <nav class="side-nav" aria-label="เมนูหลัก">
+        <button class="nav-item active" data-view="workspace"><span class="nav-icon">▦</span> จัดการบทนิยาย</button>
+        <button class="nav-item" data-view="export"><span class="nav-icon">⇩</span> ส่งออกไฟล์</button>
+        <button class="nav-item" data-view="google"><span class="nav-icon">◈</span> Google Docs <span class="tag-dark">BETA</span></button>
+        <button class="nav-item" data-view="help"><span class="nav-icon">ⓘ</span> วิธีใช้งาน</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="privacy-note"><span>◉</span><div><strong>Private by design</strong><p>แยกบทบนอุปกรณ์ของคุณ ไม่มีเซิร์ฟเวอร์รับต้นฉบับ</p></div></div>
+        <div class="version">VERSION 1.2.0 · TH</div>
+      </div>
+    </aside>
+    <div class="main-area">
+      <header class="topbar"><span>พื้นที่ทำงาน <span class="slash">/</span> <strong id="breadcrumb">จัดการบทนิยาย</strong></span><div class="top-actions"><span class="status-dot"></span><span>พร้อมใช้งาน</span></div></header>
+      <main class="content">
+        <section id="view-workspace" class="view active">
+          <div class="page-heading"><div><span class="eyebrow">WORKSPACE</span><h1>เปลี่ยนงานหลายร้อยบท <em>ให้เป็นเรื่องง่าย</em></h1><p>นำเข้านิยาย ตรวจจับบทอัตโนมัติ ตรวจความครบถ้วน และจัดส่งได้ในไม่กี่ขั้นตอน</p></div><div class="head-symbol">✦</div></div>
+          <div class="card upload-card" id="dropZone">
+            <div class="card-top"><span class="step">01</span><div><h2>นำเข้านิยาย</h2><p>รองรับ TXT, DOCX, หลายไฟล์พร้อมกัน หรือวางข้อความ</p></div><span class="pill">LOCAL PROCESSING</span></div>
+            <div class="upload-drop"><div class="upload-icon">⇧</div><h3>ลากไฟล์มาวางที่นี่</h3><p>หรือเลือกไฟล์นิยายจากคอมพิวเตอร์ของคุณ</p><button class="btn btn-primary" id="pickFileBtn" type="button">+ เลือกไฟล์นิยาย</button><input id="fileInput" type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple hidden/><small>TXT / DOCX · เลือกหลายไฟล์ได้ · ขนาดแนะนำไม่เกิน 30 MB ต่อไฟล์</small></div>
+            <div class="paste-toggle"><span>มีนิยายอยู่ในแชต?</span><button class="link-button" id="togglePaste">วางข้อความแทน ↗</button></div>
+            <div id="pastePanel" class="paste-panel hidden"><label for="pasteText">วางข้อความนิยาย (สามารถวางหลายบทพร้อมกัน)</label><textarea id="pasteText" rows="7" placeholder="บทที่ 690 การเดินทางเพื่อการกุศล&#10;เนื้อหานิยาย...&#10;[จบตอน]&#10;บทที่ 691 ..."></textarea><div class="paste-actions"><input id="pasteName" placeholder="ชื่อชุดนิยาย (ไม่บังคับ)"/><button class="btn btn-primary" id="pasteAddBtn">เพิ่มข้อความนี้</button></div></div>
+            <div class="imported-list" id="importedList"></div>
+          </div>
+          <div class="metrics" id="metrics"><div class="metric"><span>บทที่พบ</span><strong id="statFound">0</strong><small>ทั้งหมดที่นำเข้า</small></div><div class="metric"><span>บทที่เลือก</span><strong id="statActive">0</strong><small>พร้อมจัดเรียง</small></div><div class="metric"><span>บทซ้ำ</span><strong id="statDup">0</strong><small>เลขบทตรงกัน</small></div><div class="metric"><span>สิ่งที่ต้องตรวจ</span><strong id="statAlerts">0</strong><small>ตรวจสอบก่อนส่งออก</small></div></div>
+          <div class="card chapter-card">
+            <div class="card-top"><span class="step">02</span><div><h2>รายการบทนิยาย</h2><p>เรียงเลขบทอัตโนมัติ เลือกบท และตรวจเนื้อหาก่อนส่งออก</p></div></div>
+            <div class="chapter-toolbar"><div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="ค้นหาเลขบทหรือชื่อบท..."/></div><div class="tool-actions"><button class="btn btn-subtle btn-sm" id="selectAllBtn">เลือกทั้งหมด</button><button class="btn btn-subtle btn-sm" id="clearAllBtn">ไม่เลือกทั้งหมด</button><button class="btn btn-ghost btn-sm" id="resetBtn">ล้างข้อมูล</button></div></div>
+            <div class="notice-block hidden" id="auditNotice"></div>
+            <div class="chapter-list" id="chapterList"><div class="empty-state"><div class="empty-art">▤</div><h3>ยังไม่มีบทนิยาย</h3><p>เพิ่มไฟล์หรือวางข้อความด้านบน แล้วระบบจะแยกบทให้ทันที</p></div></div>
+            <div class="list-footer"><span id="listCount">ยังไม่ได้นำเข้า</span><button class="link-button" id="goExport">ไปหน้าส่งออก ↗</button></div>
+          </div>
+        </section>
+        <section id="view-export" class="view">
+          <div class="page-heading"><div><span class="eyebrow">EXPORT CENTER</span><h1>ส่งออกไฟล์ <em>ตามรูปแบบที่ต้องการ</em></h1><p>สร้างไฟล์รายบทหรือรวมบทเป็น Word ได้โดยไม่ต้องเชื่อม Google</p></div></div>
+          <div class="card page-card"><div class="card-top"><span class="step">03</span><div><h2>เลือกรูปแบบส่งออก</h2><p>ไฟล์ต้นฉบับยังคงอยู่ในเครื่อง ไม่มีการแก้ทับ</p></div></div>
+            <div class="format-grid"><label class="format-choice"><input type="radio" name="exportFormat" value="txt" checked/><span class="format-icon">TXT</span><strong>ZIP · บทละไฟล์ TXT</strong><small>เหมาะสำหรับเก็บต้นฉบับหรืออัปโหลดต่อ</small></label><label class="format-choice"><input type="radio" name="exportFormat" value="docx"/><span class="format-icon">DOC</span><strong>ZIP · บทละไฟล์ Word</strong><small>ข้อความล้วน ไม่เก็บฟอนต์/รูปภาพเดิม</small></label><label class="format-choice"><input type="radio" name="exportFormat" value="merged"/><span class="format-icon">ONE</span><strong>Word รวมทุกบท</strong><small>เรียงเลขบทจากน้อยไปมาก</small></label></div>
+            <div class="check-line"><label><input id="allowIssuesExport" type="checkbox"/> ฉันตรวจสอบแล้วและต้องการส่งออกแม้มีข้อผิดพลาด</label></div>
+            <button class="btn btn-primary btn-large" id="downloadBtn">⇩ สร้างไฟล์และดาวน์โหลด</button><div class="inline-feedback" id="exportFeedback" aria-live="polite"></div>
+          </div>
+          <div class="card info-card"><div class="info-symbol">✓</div><div><strong>ตรวจสอบก่อนส่งออก</strong><p id="exportSummary">ยังไม่มีบทที่พร้อมส่งออก</p></div></div>
+        </section>
+        <section id="view-google" class="view">
+          <div class="page-heading"><div><span class="eyebrow">GOOGLE WORKSPACE</span><h1>หนึ่งบท ต่อหนึ่งแท็บ <em>บน Google Docs</em></h1><p>สร้างเอกสารใหม่ หรือเพิ่มเฉพาะบทที่ยังไม่มีลงในเอกสารเดิม</p></div></div>
+          <div class="google-steps"><span class="mini-step">1. ตั้งค่า OAuth</span><span>→</span><span class="mini-step">2. เชื่อม Google</span><span>→</span><span class="mini-step">3. สร้างใหม่ / เติมบท</span></div>
+          <div class="card page-card"><div class="card-top"><span class="step">04</span><div><h2>เชื่อมบัญชี Google</h2><p>ใช้การอนุญาต OAuth จาก Google ไม่ต้องกรอกรหัสผ่านในเว็บ</p></div></div>
+            <label for="googleClientId">OAuth 2.0 Client ID (Desktop app)</label><input class="field" id="googleClientId" placeholder="123456789-xxxxx.apps.googleusercontent.com" spellcheck="false"/><p class="field-help">สร้าง OAuth Client ID ประเภท Desktop app จาก Google Cloud Console (ไม่ต้องเพิ่ม JavaScript Origin) — <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">เปิด Google Cloud Console ↗</a></p>
+            <div class="connect-row"><button class="btn btn-primary" id="connectBtn">◈ เชื่อม Google Account</button><button class="btn btn-subtle" id="disconnectBtn">ยกเลิกการเชื่อม</button><span id="connectStatus" class="connect-status">ยังไม่ได้เชื่อม</span></div>
+            <div class="divider"></div>
+            <div class="google-modes" role="group" aria-label="เลือกวิธีส่งเข้า Google Docs">
+              <label class="google-mode"><input type="radio" name="googleMode" value="new" checked/><span><strong>สร้าง Google Docs ใหม่</strong><small>สร้างเล่มใหม่ และแยกแท็บตามที่เลือก</small></span></label>
+              <label class="google-mode"><input type="radio" name="googleMode" value="append"/><span><strong>เติมบทลงเอกสารเดิม</strong><small>ข้ามเลขบทที่มีอยู่แล้ว ไม่แก้ข้อความเดิม</small></span></label>
+            </div>
+            <div id="createSettings" class="settings-grid"><div><label for="docPrefix">ชื่อเรื่อง/คำนำหน้าชื่อเอกสาร</label><input class="field" id="docPrefix" value="นิยายแปล" maxlength="110"/></div><div><label for="perDoc">จำนวนบทต่อเอกสาร</label><select class="field" id="perDoc"><option value="30">30 บท</option><option value="50">50 บท</option><option value="90" selected>90 บท (แนะนำ)</option><option value="95">95 บท</option><option value="100">100 บท (สูงสุด)</option></select></div></div>
+            <div id="appendSettings" class="append-settings hidden"><label for="existingDocUrl">ลิงก์ Google Docs เดิมที่ต้องการเติมบท</label><input class="field" id="existingDocUrl" placeholder="https://docs.google.com/document/d/…/edit" spellcheck="false"/><p class="field-help">คัดลอกลิงก์จากเอกสารเดิม โดยเปิดเอกสารในบัญชี Google ที่เชื่อมไว้ และตรวจว่ามีสิทธิ์แก้ไข</p><button class="btn btn-subtle" type="button" id="inspectDocBtn">⌕ ตรวจเอกสารเดิมก่อนเติม</button><div id="appendPreview" class="append-preview hidden" aria-live="polite"></div></div>
+            <div class="check-line"><label><input id="allowIssuesGoogle" type="checkbox"/> ฉันตรวจสอบแล้วและยอมรับความเสี่ยงจากบทที่มีข้อผิดพลาด</label></div>
+            <div class="google-warning"><span>ⓘ</span><p id="googleWarningText">โหมดสร้างใหม่: สร้างเอกสารใหม่ใน Google Drive ไม่แก้ไฟล์เดิม หากการส่งออกหยุดกลางทาง ให้ตรวจลิงก์ที่สร้างแล้วก่อนเริ่มใหม่เพื่อหลีกเลี่ยงเอกสารซ้ำ</p></div>
+            <button class="btn btn-primary btn-large" id="publishBtn">◈ สร้างเอกสารและแท็บ Google Docs</button>
+            <div id="publishProgress" class="progress hidden"><div class="progress-head"><strong id="progressLabel">กำลังทำงาน...</strong><span id="progressPct">0%</span></div><div class="progress-track"><div id="progressBar"></div></div></div>
+            <div class="inline-feedback" id="googleFeedback" aria-live="polite"></div>
+            <div class="created-docs" id="createdDocs"></div>
+          </div>
+          <div class="card setup-card"><h3>ก่อนใช้งาน Google Docs ครั้งแรก</h3><ol><li>เปิด <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a> แล้วสร้างโปรเจกต์</li><li>เปิดใช้ <strong>Google Docs API</strong> และตั้งค่า OAuth consent screen / Google Auth Platform</li><li>สร้าง OAuth Client ID ประเภท <strong>Desktop app</strong> โดยไม่ต้องกำหนด Authorized JavaScript origins</li><li>นำ Client ID มาวางด้านบน และใช้บัญชีที่เป็น Test user หากแอปอยู่ในโหมด Testing</li></ol><p class="subnote">Google sign-in จะเปิดเบราว์เซอร์ภายนอกเพื่อยืนยันตัวตน และกลับสู่แอปอัตโนมัติ</p></div>
+        </section>
+        <section id="view-help" class="view"><div class="page-heading"><div><span class="eyebrow">GETTING STARTED</span><h1>คู่มือ <em>การใช้งาน</em></h1><p>เหมาะสำหรับนิยายหลายร้อยบทที่ใช้รูปแบบหัวบทชัดเจน</p></div></div>
+          <div class="card help-card"><h2>ระบบตรวจจับบทอย่างไร?</h2><div class="sample-text">บทที่ 690 การเดินทางเพื่อการกุศล<br/>เนื้อหานิยาย...<br/>[จบตอน]<br/><br/>บทที่ 691 ล้วนเป็นคนกันเองทั้งนั้น<br/>เนื้อหานิยาย...<br/>[จบบท]</div><p>ระบบหาบรรทัดที่เริ่มต้นด้วย <code>บทที่ 690</code> แล้วเก็บเนื้อหาไปจนถึงก่อนหัวบทถัดไป โดยตรวจว่ามี <code>[จบตอน]</code> หรือ <code>[จบบท]</code> หรือไม่ รวมบรรทัดว่างไว้เพื่อรักษาต้นฉบับ</p><h3>สิ่งที่ควรรู้</h3><ul><li>TXT รักษาข้อความต้นฉบับทั้งบรรทัดและเครื่องหมายจบ; DOCX ดึงข้อความออกมา แต่รูปภาพ ตารางเชิงโครงสร้าง และรูปแบบตัวอักษรอาจไม่ติดมาด้วย</li><li>บทซ้ำ, บทไม่มีคำจบ และข้อความก่อนบทแรกจะมีคำเตือนให้ตรวจ</li><li>หากเลขบทข้าม เช่น 690 → 692 ระบบจะแจ้งบทที่ 691 ว่าอาจขาด ไม่ถือเป็นข้อผิดพลาดบังคับ</li><li>รายการที่เอาเครื่องหมายถูกออกจะไม่ถูกรวมในไฟล์ส่งออก</li><li>Google Docs เชื่อมโดย OAuth แค่ช่วงใช้งาน ไม่เก็บ access token ใน localStorage; โหมดเติมบทจะอ่านแท็บเดิม ตรวจเลขบทซ้ำ และไม่เขียนทับเนื้อหาเดิม</li></ul><p>ดูรายละเอียดการติดตั้งและความปลอดภัยเพิ่มเติมในไฟล์ <code>README_TH.md</code> ที่มาพร้อมเว็บ</p></div>
+        </section>
+      </main>
+      <footer class="footer">Novel Chapter Manager <span>·</span> สร้างเพื่อคนทำงานแปลนิยาย <span>·</span> เนื้อหาของคุณอยู่ในการควบคุมของคุณ</footer>
+    </div>
+  </div>
+  <div id="editorOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="editorHeading"><div class="editor-panel"><div class="editor-header"><div><span class="eyebrow">CHAPTER INSPECTOR</span><h2 id="editorHeading">ตรวจเนื้อหาบท</h2></div><button id="closeEditor" class="close-btn" aria-label="ปิด">×</button></div><div class="editor-body"><label for="editorTitle">ชื่อบทสำหรับแท็บ Google Docs / ชื่อไฟล์</label><input id="editorTitle" class="field"/><label for="editorText">ข้อความต้นฉบับ (แก้ไขเฉพาะเมื่อจำเป็น)</label><textarea id="editorText" spellcheck="false"></textarea><p class="field-help">หากแก้ข้อความ ระบบจะระบุว่าเป็นบทที่แก้ไขแล้ว และตรวจเครื่องหมายจบอีกครั้ง</p></div><div class="editor-footer"><button id="cancelEditor" class="btn btn-subtle">ยกเลิก</button><button id="saveEditor" class="btn btn-primary">บันทึกการแก้ไข</button></div></div></div>
+  <div id="toast" class="toast hidden" aria-live="polite"></div>
+</body></html>
