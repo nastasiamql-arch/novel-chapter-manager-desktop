@@ -1,0 +1,1 @@
+# novel-chapter-manager-desktop
