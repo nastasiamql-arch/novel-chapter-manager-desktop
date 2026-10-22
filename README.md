@@ -2,7 +2,7 @@
 
 Desktop migration of the user-provided Novel Chapter Manager v1.2.0 website.
 
-**Status:** v2.0.0-alpha.1 — first implementation, not a production release.
+**Status:** v2.0.0-alpha.1 — Windows desktop alpha. The chapter tools and installer are CI-validated; Google Docs still requires a real-account verification.
 
 ## Features
 
@@ -39,9 +39,15 @@ Create an OAuth 2.0 **Desktop app** client ID in Google Cloud Console; enable th
 
 ## Current limitations
 
-- No persistent workspace/auto-save yet; unsaved chapter selections and edits are lost at exit.
-- Real Google-account integration has not been tested.
-- Installer packaging has not yet been verified on Windows.
-- This desktop alpha requires dependency installation via npm.
+- Local workspace autosave/restore is enabled for imported sources, edits and selections (with an on-disk backup of the previous save). This is not a replacement for independent manuscript backups.
+- Real Google-account integration has not been tested; no Google credentials are included.
+- Windows installer generation is validated through GitHub Actions. A manual run on a user's PC is still recommended.
+- Developers use npm; end users can use the unsigned Windows installer from a successful GitHub Actions artifact.
 
 The original project stays separate from Palantir: Novel. No credentials or manuscripts are included in this repository.
+
+## Local data and limitations
+
+Workspace data is stored in Electron's `userData/chapter-workspace.json` with a `.bak` copy of the last save. Google access tokens are kept in the Electron main process memory, not in project files. Import and export remain local unless you explicitly choose Google publishing. If a save/restore warning occurs, **do not clear the workspace** until you have backed up your manuscript files and project directory.
+
+For an unsigned installer: open [Actions](https://github.com/nastasiamql-arch/novel-chapter-manager-desktop/actions), select the latest successful `Desktop validation and Windows installer` run, then download the `novel-chapter-manager-windows` artifact. Windows SmartScreen may show an unknown publisher warning; the app is not code-signed.
