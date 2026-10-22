@@ -2,6 +2,8 @@
 const {createServer}=require('node:http');
 const {randomBytes,createHash}=require('node:crypto');
 const VALID_ID=/^\d+-[a-z0-9_-]+\.apps\.googleusercontent\.com$/;
+// drive.file supports files made/opened with the app; documents also enables existing Docs URLs.
+const GOOGLE_SCOPES='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/documents';
 
 async function tokenRequest(params,post=fetch) {
   const response=await post('https://oauth2.googleapis.com/token',{
@@ -45,7 +47,7 @@ async function authorizeDesktop(credentials,openBrowser,post=fetch) {
     const redirect_uri='http://127.0.0.1:'+server.address().port;
     const url=new URL('https://accounts.google.com/o/oauth2/v2/auth');
     for(const [k,v] of Object.entries({client_id:credentials.client_id,redirect_uri,
-      response_type:'code',scope:'https://www.googleapis.com/auth/drive.file',
+      response_type:'code',scope:GOOGLE_SCOPES,
       state,code_challenge:challenge,code_challenge_method:'S256',
       access_type:'offline',prompt:'consent'}))url.searchParams.set(k,v);
     timer=setTimeout(()=>{if(!done){done=true;settle.reject(new Error('หมดเวลารอ Google authorization'));}},180000);
@@ -59,4 +61,4 @@ async function authorizeDesktop(credentials,openBrowser,post=fetch) {
     if(!done){done=true;settle.reject(new Error('Authorization interrupted'));void codePromise.catch(()=>{});}
   }
 }
-module.exports={authorizeDesktop,refresh,tokenRequest};
+module.exports={authorizeDesktop,refresh,tokenRequest,GOOGLE_SCOPES};

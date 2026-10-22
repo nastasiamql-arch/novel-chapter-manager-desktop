@@ -1,7 +1,7 @@
 /* Browser-only Google Docs API publisher. No password, tokens are never persisted. */
 (function(root){
 'use strict';
-const SCOPE='https://www.googleapis.com/auth/drive.file';
+const SCOPE='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/documents';
 const BASE='https://docs.googleapis.com/v1/documents';
 let token='';
 let tokenClient;
