@@ -2,7 +2,7 @@
 
 Desktop migration of the user-provided Novel Chapter Manager v1.2.0 website.
 
-**Status:** v2.0.0-alpha.3 — Windows desktop alpha. The chapter tools and installer are CI-validated; Google Docs still requires a real-account verification.
+**Status:** v2.0.0-alpha.7 — Windows desktop alpha. The chapter tools and installer are CI-validated; Google Docs still requires a real-account verification.
 
 ## Features
 
@@ -55,3 +55,7 @@ For an unsigned installer: open [Actions](https://github.com/nastasiamql-arch/no
 ## Desktop Google login persistence (alpha.3)
 
 In Google Cloud Console, create OAuth Client ID type **Desktop app**. Download the JSON from that client; it contains `installed.client_id` and `installed.client_secret`. In Google Docs view, click **เลือก OAuth Desktop JSON** and choose that file, then authorize once. On next launches the saved refresh token is used automatically, unless Google revokes it or it expires. The app will refuse persistent login when the operating system does not provide protected encryption. Keep the downloaded JSON private. Do not upload it to GitHub. Google OAuth Testing-mode refresh tokens may expire after 7 days depending on scopes and configuration.
+
+## Existing Google Docs (v2.0.0-alpha.7)
+
+The Desktop OAuth flow now requests both `drive.file` and `documents`, enabling the Google Docs API to read existing Docs files that the connected Google account can access. This is a broader Google permission than earlier releases and may require adding it in Google Auth Platform, configuring test users, and Google app verification for broader public distribution. After upgrading from alpha.6 or earlier, click **เชื่อม Google Account** again to grant the new permission; the saved Desktop OAuth client configuration is preserved. Reconnecting does not delete manuscripts. Check the account, document URL, and edit access if a document still returns 404. Make a backup before editing an existing document. No live Google-account end-to-end test has been performed.
