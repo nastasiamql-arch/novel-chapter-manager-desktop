@@ -295,6 +295,64 @@ async function publish(){
   }catch(e){showError(feedback,`${e.message}\nหากมีการสร้างแท็บไปแล้ว โปรดตรวจลิงก์ด้านล่างก่อนลองใหม่`);}
   finally{state.busy=false;$('publishBtn').disabled=false;$('inspectDocBtn').disabled=false;}
 }
+let docsTxtSnapshot=null;
+function invalidateDocsTxt(){
+  docsTxtSnapshot=null;
+  $('docsTxtDownload').disabled=true;
+  $('docsTxtPreview').classList.add('hidden');
+}
+async function searchDocsTxt(){
+  const box=$('docsSearchResults'),status=$('docsTxtFeedback');
+  try{
+    if(!window.GooglePublisher.isConnected)throw Error('กรุณาเชื่อม Google ก่อน');
+    const found=await window.GooglePublisher.searchDocuments($('docsSearch').value);
+    box.replaceChildren();
+    for(const entry of found){
+      const button=document.createElement('button');
+      button.className='btn btn-subtle';button.type='button';button.textContent=entry.name+' — เพิ่มลิงก์';
+      button.addEventListener('click',()=>{
+        const input=$('docsTxtLinks'),url='https://docs.google.com/document/d/'+entry.id+'/edit';
+        if(!input.value.includes(entry.id))input.value+=(input.value.trim()?'\n':'')+url;
+        invalidateDocsTxt();
+      });
+      box.appendChild(button);
+    }
+    status.textContent=found.length?'พบเอกสาร '+found.length+' รายการ':'ไม่พบเอกสารที่แอปค้นหาได้ ลองวางลิงก์แทน';
+  }catch(e){showError(status,e.message);}
+}
+async function inspectDocsTxt(){
+  const feedback=$('docsTxtFeedback'),button=$('docsTxtInspect'),preview=$('docsTxtPreview');
+  if(state.busy)return;
+  try{
+    state.busy=true;button.disabled=true;invalidateDocsTxt();
+    const links=$('docsTxtLinks').value;
+    const parsed=await window.GooglePublisher.fetchDocumentsTxt(links,msg=>feedback.textContent=msg);
+    docsTxtSnapshot={links,parsed};
+    preview.classList.remove('hidden');
+    preview.textContent='พบ '+parsed.files.length+' บท · ช่วง '+parsed.range.join('–')+
+      '\nเอกสาร '+parsed.documents+' ไฟล์ · คำเตือน '+parsed.warnings.length+' จุด\n'+
+      parsed.warnings.slice(0,12).join('\n')+'\n\nชื่อไฟล์ตัวอย่าง:\n'+parsed.files.slice(0,6).map(f=>f.name).join('\n');
+    $('docsTxtDownload').disabled=false;showSuccess(feedback,'ตรวจเรียบร้อยแล้ว');
+  }catch(e){showError(feedback,e.message);}
+  finally{state.busy=false;button.disabled=false;}
+}
+async function downloadDocsTxt(){
+  const feedback=$('docsTxtFeedback');
+  if(!docsTxtSnapshot||docsTxtSnapshot.links!==$('docsTxtLinks').value){
+    invalidateDocsTxt();showError(feedback,'ลิงก์เปลี่ยนไป กรุณาตรวจอีกครั้ง');return;
+  }
+  if(state.busy)return;
+  try{
+    state.busy=true;$('docsTxtDownload').disabled=true;
+    const data=docsTxtSnapshot.parsed,zip=new JSZip();
+    for(const file of data.files)zip.file(file.name,file.text);
+    zip.file('_manifest.json',JSON.stringify({chapters:data.files.map(f=>({number:f.number,name:f.name,documentId:f.documentId,tabId:f.tabId})),warnings:data.warnings},null,2));
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+    saveBlob(blob,'GoogleDocs_TXT_'+data.range[0]+'-'+data.range[1]+'.zip');
+    showSuccess(feedback,'ดาวน์โหลด TXT '+data.files.length+' บทสำเร็จ');
+  }catch(e){showError(feedback,e.message);}
+  finally{state.busy=false;$('docsTxtDownload').disabled=!docsTxtSnapshot;}
+}
 for(const btn of document.querySelectorAll('[data-view]'))btn.addEventListener('click',()=>navigate(btn.dataset.view));
 $('goExport').addEventListener('click',()=>navigate('export'));
 $('pickFileBtn').addEventListener('click',()=>$('fileInput').click());
@@ -326,6 +384,10 @@ $('editorOverlay').addEventListener('click',e=>{if(e.target===$('editorOverlay')
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.currentEdit)closeEditor();});
 $('downloadBtn').addEventListener('click',download);
 $('connectBtn').addEventListener('click',connect);
+$('docsSearchBtn').addEventListener('click',searchDocsTxt);
+$('docsTxtInspect').addEventListener('click',inspectDocsTxt);
+$('docsTxtDownload').addEventListener('click',downloadDocsTxt);
+$('docsTxtLinks').addEventListener('input',invalidateDocsTxt);
 $('importOAuthBtn').addEventListener('click',importGoogleCredentials);
 $('disconnectBtn').addEventListener('click',()=>{window.GooglePublisher.disconnect();$('connectStatus').textContent='ยกเลิกการเชื่อมแล้ว';$('connectStatus').classList.remove('ok');toast('ยกเลิกการเชื่อมในหน้าเว็บแล้ว');});
 $('publishBtn').addEventListener('click',publish);

@@ -119,6 +119,23 @@ app.whenReady().then(() => {
     }
     return response.status===204?{}:response.json();
   });
+  ipcMain.handle('google:search',async(event,query)=>{
+    verify(event);
+    const term=String(query||'').trim();
+    if(!term||term.length>150)throw Error('กรุณากรอกชื่อเอกสารสำหรับค้นหา (ไม่เกิน 150 ตัวอักษร)');
+    const access=await ensureGoogleToken();
+    const q="mimeType = 'application/vnd.google-apps.document' and trashed = false and name contains '"+term.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'";
+    const url=new URL('https://www.googleapis.com/drive/v3/files');
+    url.search=new URLSearchParams({q,fields:'nextPageToken,files(id,name,webViewLink,modifiedTime)',page_size:'100'}).toString().replace('page_size','pageSize');
+    let response;
+    try{response=await fetch(url,{headers:{Authorization:'Bearer '+access},signal:AbortSignal.timeout(30000)});}
+    catch(e){throw Error('ค้นหาเอกสาร Google Drive ไม่สำเร็จ: '+e.message);}
+    if(!response.ok){const data=await response.text();throw Error('Google Drive API '+response.status+': '+data.slice(0,600));}
+    const data=await response.json();
+    return (data.files||[]).filter(f=>typeof f.id==='string'&&typeof f.name==='string').map(f=>({
+      id:f.id,name:f.name,modifiedTime:f.modifiedTime||''
+    }));
+  });
   ipcMain.handle('workspace:load', async event => {
     if (event.sender !== win?.webContents) throw Error('Unauthorized window');
     return store.load(app.getPath('userData'));

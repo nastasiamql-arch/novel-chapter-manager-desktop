@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="styles.css"/>
   <script defer src="../node_modules/jszip/dist/jszip.min.js"></script>
   <script defer src="core.js"></script>
+  <script defer src="docs-txt.js"></script>
   <script defer src="google.js"></script>
   <script defer src="app.js"></script>
 </head>
@@ -24,7 +25,7 @@
       </nav>
       <div class="sidebar-bottom">
         <div class="privacy-note"><span>◉</span><div><strong>Private by design</strong><p>แยกบทบนอุปกรณ์ของคุณ ไม่มีเซิร์ฟเวอร์รับต้นฉบับ</p></div></div>
-        <div class="version">VERSION 2.0.0-alpha.4 · TH</div>
+        <div class="version">VERSION 2.0.0-alpha.5 · TH</div>
       </div>
     </aside>
     <div class="main-area">
@@ -77,7 +78,19 @@
             <div class="inline-feedback" id="googleFeedback" aria-live="polite"></div>
             <div class="created-docs" id="createdDocs"></div>
           </div>
-          <div class="card setup-card"><h3>ก่อนใช้งาน Google Docs ครั้งแรก</h3><ol><li>เปิด <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a> แล้วสร้างโปรเจกต์</li><li>เปิดใช้ <strong>Google Docs API</strong> และตั้งค่า OAuth consent screen / Google Auth Platform</li><li>สร้าง OAuth Client ID ประเภท <strong>Desktop app</strong> โดยไม่ต้องกำหนด Authorized JavaScript origins</li><li>นำ Client ID มาวางด้านบน และใช้บัญชีที่เป็น Test user หากแอปอยู่ในโหมด Testing</li></ol><p class="subnote">Google sign-in จะเปิดเบราว์เซอร์ภายนอกเพื่อยืนยันตัวตน และกลับสู่แอปอัตโนมัติ</p></div>
+          <div class="card page-card" id="docsTxtPanel">
+  <div class="card-top"><span class="step">05</span><div><h2>ดาวน์โหลด Google Docs เป็น TXT แยกบท</h2><p>วางลิงก์ Google Docs หนึ่งลิงก์ต่อบรรทัด หรือค้นเอกสารที่แอปเข้าถึงได้ด้วยชื่อ</p></div></div>
+  <label for="docsSearch">ค้นหาชื่อเอกสาร Google Docs</label>
+  <div class="connect-row"><input class="field" id="docsSearch" placeholder="เซียนหุ้นย้อนเวลา เล่ม 2" maxlength="150"/><button class="btn btn-subtle" id="docsSearchBtn" type="button">⌕ ค้นหา</button></div>
+  <div id="docsSearchResults" class="created-docs" aria-live="polite"></div>
+  <label for="docsTxtLinks">ลิงก์ Google Docs (หนึ่งลิงก์ต่อบรรทัด)</label>
+  <textarea id="docsTxtLinks" rows="5" class="field" placeholder="https://docs.google.com/document/d/.../edit"></textarea>
+  <p class="field-help">อ่านจาก Google Docs โดยตรง ไม่แก้เอกสารต้นฉบับ รองรับไฟล์ที่บัญชีนี้มีสิทธิ์อ่าน หากชื่อแท็บสั้น จะอ่านชื่อเต็มจากหัวบทในเนื้อหา</p>
+  <div class="connect-row"><button class="btn btn-subtle" id="docsTxtInspect" type="button">ตรวจสอบบทก่อนดาวน์โหลด</button><button class="btn btn-primary" id="docsTxtDownload" type="button" disabled>⇩ ดาวน์โหลด ZIP (TXT แยกบท)</button></div>
+  <div id="docsTxtFeedback" class="inline-feedback" aria-live="polite"></div>
+  <div id="docsTxtPreview" class="append-preview hidden" aria-live="polite"></div>
+</div>
+<div class="card setup-card"><h3>ก่อนใช้งาน Google Docs ครั้งแรก</h3><ol><li>เปิด <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a> แล้วสร้างโปรเจกต์</li><li>เปิดใช้ <strong>Google Docs API</strong> และตั้งค่า OAuth consent screen / Google Auth Platform</li><li>สร้าง OAuth Client ID ประเภท <strong>Desktop app</strong> โดยไม่ต้องกำหนด Authorized JavaScript origins</li><li>นำ Client ID มาวางด้านบน และใช้บัญชีที่เป็น Test user หากแอปอยู่ในโหมด Testing</li></ol><p class="subnote">Google sign-in จะเปิดเบราว์เซอร์ภายนอกเพื่อยืนยันตัวตน และกลับสู่แอปอัตโนมัติ</p></div>
         </section>
         <section id="view-help" class="view"><div class="page-heading"><div><span class="eyebrow">GETTING STARTED</span><h1>คู่มือ <em>การใช้งาน</em></h1><p>เหมาะสำหรับนิยายหลายร้อยบทที่ใช้รูปแบบหัวบทชัดเจน</p></div></div>
           <div class="card help-card"><h2>ระบบตรวจจับบทอย่างไร?</h2><div class="sample-text">บทที่ 690 การเดินทางเพื่อการกุศล<br/>เนื้อหานิยาย...<br/>[จบตอน]<br/><br/>บทที่ 691 ล้วนเป็นคนกันเองทั้งนั้น<br/>เนื้อหานิยาย...<br/>[จบบท]</div><p>ระบบหาบรรทัดที่เริ่มต้นด้วย <code>บทที่ 690</code> แล้วเก็บเนื้อหาไปจนถึงก่อนหัวบทถัดไป โดยตรวจว่ามี <code>[จบตอน]</code> หรือ <code>[จบบท]</code> หรือไม่ รวมบรรทัดว่างไว้เพื่อรักษาต้นฉบับ</p><h3>สิ่งที่ควรรู้</h3><ul><li>TXT รักษาข้อความต้นฉบับทั้งบรรทัดและเครื่องหมายจบ; DOCX ดึงข้อความออกมา แต่รูปภาพ ตารางเชิงโครงสร้าง และรูปแบบตัวอักษรอาจไม่ติดมาด้วย</li><li>บทซ้ำ, บทไม่มีคำจบ และข้อความก่อนบทแรกจะมีคำเตือนให้ตรวจ</li><li>หากเลขบทข้าม เช่น 690 → 692 ระบบจะแจ้งบทที่ 691 ว่าอาจขาด ไม่ถือเป็นข้อผิดพลาดบังคับ</li><li>รายการที่เอาเครื่องหมายถูกออกจะไม่ถูกรวมในไฟล์ส่งออก</li><li>Google Docs เชื่อมโดย OAuth แค่ช่วงใช้งาน ไม่เก็บ access token ใน localStorage; โหมดเติมบทจะอ่านแท็บเดิม ตรวจเลขบทซ้ำ และไม่เขียนทับเนื้อหาเดิม</li></ul><p>ดูรายละเอียดการติดตั้งและความปลอดภัยเพิ่มเติมในไฟล์ <code>README_TH.md</code> ที่มาพร้อมเว็บ</p></div>

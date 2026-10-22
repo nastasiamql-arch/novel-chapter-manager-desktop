@@ -71,6 +71,26 @@ async function api(url,method='GET',body=null){
   if(!response.ok){const message=await response.text();let detail=message;try{detail=JSON.parse(message).error?.message||message;}catch{}throw new Error(`Google API ${response.status}: ${detail.slice(0,650)}`);}
   return response.status===204?{}:response.json();
 }
+async function searchDocuments(term){
+  if(!token)throw Error('กรุณาเชื่อม Google ก่อน');
+  if(!root.NovelDesktop?.googleSearch)throw Error('ใช้การค้นหาเอกสารผ่านโปรแกรม Desktop เท่านั้น');
+  return root.NovelDesktop.googleSearch(String(term||'').trim().replace(/^@/,''));
+}
+async function fetchDocumentsTxt(links,onProgress=()=>{}){
+  if(!token)throw Error('กรุณาเชื่อม Google ก่อน');
+  if(!root.DocsTxtExport)throw Error('โมดูลดาวน์โหลด TXT ไม่พร้อม');
+  const ids=root.DocsTxtExport.parseLinks(links);
+  const documents=[];
+  for(let i=0;i<ids.length;i++){
+    onProgress('กำลังอ่านเอกสาร '+(i+1)+'/'+ids.length);
+    const id=ids[i];
+    let doc;
+    try{doc=await rateAware(()=>api(BASE+'/'+encodeURIComponent(id)+'?includeTabsContent=true'));}
+    catch(e){throw Error('อ่านเอกสารลำดับ '+(i+1)+' ไม่สำเร็จ: '+e.message);}
+    documents.push(root.DocsTxtExport.extractDocument(doc));
+  }
+  return root.DocsTxtExport.makeFiles(documents);
+}
 function batchUpdate(id,requests){return api(`${BASE}/${encodeURIComponent(id)}:batchUpdate`,'POST',{requests});}
 const wait = ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function rateAware(op){
@@ -300,5 +320,5 @@ async function append(chapters,documentInput,onProgress=()=>{}){
   return {docs:[item],plan};
 }
 
-root.GooglePublisher={tabName,connect,disconnect,restore,publish,inspectAppend,append,documentIdFrom,prepare:loadGoogleIdentity,get isConnected(){return Boolean(token)},get clientId(){return connectedClientId}};
+root.GooglePublisher={tabName,searchDocuments,fetchDocumentsTxt,connect,disconnect,restore,publish,inspectAppend,append,documentIdFrom,prepare:loadGoogleIdentity,get isConnected(){return Boolean(token)},get clientId(){return connectedClientId}};
 })(window);
