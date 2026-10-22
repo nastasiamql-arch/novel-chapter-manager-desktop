@@ -32,3 +32,34 @@ jobs:
           name: novel-chapter-manager-windows
           path: dist/*.exe
           if-no-files-found: error
+
+  github-release:
+    name: Publish Windows installer to Releases
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [test, windows-installer]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: novel-chapter-manager-windows
+          path: release-assets
+      - name: Create versioned GitHub prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="v${VERSION}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists. Not overwriting an existing release."
+          else
+            gh release create "$TAG" release-assets/*.exe \
+              --target "$GITHUB_SHA" \
+              --title "Novel Chapter Manager Desktop $TAG" \
+              --prerelease \
+              --notes "Windows x64 setup (unsigned alpha). Includes chapter import, parsing, checks, TXT/Word export, local workspace autosave and Google Docs integration code. Google OAuth still requires your own Desktop OAuth Client ID and has not been verified against a live Google account. Please back up manuscripts before testing."
+          fi
