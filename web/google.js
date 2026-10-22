@@ -115,14 +115,14 @@ function byUtf16(text,max){
 async function publish(chapters,options={},onProgress=()=>{}){
   if(!token)throw new Error('กรุณากดเชื่อม Google ก่อน');
   if(!chapters?.length)throw new Error('ไม่มีบทสำหรับส่งออก');
-  const perDoc=Math.min(100,Math.max(1,Number(options.perDoc)||90));
-  const groups=root.NovelCore.chunks(chapters,perDoc);
+  if(!root.NovelVolume?.plan)throw new Error('ระบบคำนวณเลขเล่มไม่พร้อมใช้งาน');
+  const groups=root.NovelVolume.plan(chapters,options);
   const created=[];let done=0;
   const progress=(message)=>onProgress({message,done,total:chapters.length,created:created.slice()});
   for(let groupIndex=0;groupIndex<groups.length;groupIndex++){
-    const group=groups[groupIndex];
-    const title=`${options.prefix||'นิยายแปล'} เล่ม ${groupIndex+1} (บท ${group[0].number}-${group[group.length-1].number})`;
-    progress(`สร้างเอกสารเล่ม ${groupIndex+1}/${groups.length}...`);
+    const planned=groups[groupIndex],group=planned.chapters;
+    const title=planned.title;
+    progress(`สร้างเอกสารเล่ม ${planned.volume} (${groupIndex+1}/${groups.length})...`);
     const doc=await rateAware(()=>api(BASE,'POST',{title}));
     const docId=doc.documentId;
     if(!docId)throw new Error('Google ไม่ได้ส่ง Document ID กลับมา');

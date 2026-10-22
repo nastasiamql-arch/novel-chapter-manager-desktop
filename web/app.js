@@ -289,7 +289,7 @@ async function publish(){
       renderDocs(docs);
       showSuccess(feedback,`✓ เพิ่ม ${plan.add} บท · ข้ามบทที่มีอยู่แล้ว ${plan.skipped} บท ไม่มีการแก้เนื้อหาเดิม กรุณาเปิด Google Docs ตรวจผล`);
     }else{
-      const items=await window.GooglePublisher.publish(chapters,{prefix:$('docPrefix').value.trim()||'นิยายแปล',perDoc:Number($('perDoc').value)},onProgress);
+      const items=await window.GooglePublisher.publish(chapters,{prefix:$('docPrefix').value.trim(),perDoc:Number($('perDoc').value)},onProgress);
       showSuccess(feedback,`✓ สร้าง ${items.length} เอกสาร รวม ${chapters.length} แท็บเรียบร้อยแล้ว กรุณาเปิดตรวจตัวอย่างบน Google Docs`);
     }
   }catch(e){showError(feedback,`${e.message}\nหากมีการสร้างแท็บไปแล้ว โปรดตรวจลิงก์ด้านล่างก่อนลองใหม่`);}
