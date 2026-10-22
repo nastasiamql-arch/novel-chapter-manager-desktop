@@ -111,10 +111,10 @@ async function publish(chapters,options={},onProgress=()=>{}){
     const details=await rateAware(()=>api(`${BASE}/${encodeURIComponent(docId)}?includeTabsContent=true&fields=tabs(tabProperties)`));
     const firstId=details.tabs?.[0]?.tabProperties?.tabId;
     if(!firstId)throw new Error('อ่าน ID ของแท็บแรกไม่สำเร็จ ดูลิงก์เอกสารที่สร้างไว้ก่อนแล้ว');
-    await rateAware(()=>batchUpdate(docId,[{updateDocumentTabProperties:{tabProperties:{tabId:firstId,title:`บทที่ ${group[0].number}${group[0].title?' '+group[0].title:''}`.slice(0,180)},fields:'title'}}]));
+    await rateAware(()=>batchUpdate(docId,[{updateDocumentTabProperties:{tabProperties:{tabId:firstId,title:tabName(group[0])},fields:'title'}}]));
     const tabIds=[firstId];
     if(group.length>1){
-      const creation=await rateAware(()=>batchUpdate(docId,group.slice(1).map(ch=>({addDocumentTab:{tabProperties:{title:`บทที่ ${ch.number}${ch.title?' '+ch.title:''}`.slice(0,180)}}}))));
+      const creation=await rateAware(()=>batchUpdate(docId,group.slice(1).map(ch=>({addDocumentTab:{tabProperties:{title:tabName(ch)}}}))));
       for(let i=0;i<group.length-1;i++){
         const id=creation.replies?.[i]?.addDocumentTab?.tabProperties?.tabId;
         if(!id)throw new Error(`สร้างแท็บสำหรับบทที่ ${group[i+1].number} แล้ว แต่ไม่ได้รับ ID ของแท็บ (ตรวจเอกสารที่สร้างไว้)`);
@@ -183,7 +183,11 @@ function documentIdFrom(input){
   }catch{}
   throw new Error('กรุณาวางลิงก์ Google Docs รูปแบบ https://docs.google.com/document/d/.../edit หรือ Document ID');
 }
-function tabName(ch){return `บทที่ ${ch.number}${ch.title?' '+ch.title:''}`.slice(0,180);}
+function tabName(ch){
+  const base=`บทที่ ${ch.number}`;
+  const full=ch.title?`${base} ${ch.title}`:base;
+  return full.length>50?base:full;
+}
 function isEndMarked(text){return /\[(?:จบตอน|จบบท)\]\s*$/.test(String(text||'').trimEnd());}
 async function readExisting(input){
   const id=documentIdFrom(input);
