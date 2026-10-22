@@ -2,7 +2,7 @@
 
 Desktop migration of the user-provided Novel Chapter Manager v1.2.0 website.
 
-**Status:** v2.0.0-alpha.1 — Windows desktop alpha. The chapter tools and installer are CI-validated; Google Docs still requires a real-account verification.
+**Status:** v2.0.0-alpha.2 — Windows desktop alpha. The chapter tools and installer are CI-validated; Google Docs still requires a real-account verification.
 
 ## Features
 
@@ -35,7 +35,7 @@ GitHub Actions runs tests and builds the installer as an **Actions artifact**.
 
 ## Google Docs
 
-Create an OAuth 2.0 **Desktop app** client ID in Google Cloud Console; enable the Docs API and configure consent/test users as required. Paste the client ID into Google Docs in the program. Authorization opens your regular browser and returns via a temporary 127.0.0.1 listener with PKCE. Only the access token is kept in memory; reconnect after restart or expiry. Test with 2–3 chapters before bulk publishing.
+Create an OAuth 2.0 **Desktop app** client ID in Google Cloud Console; the older **Web application** ID cannot be reused in the installed app. Enable the Docs API and configure consent/test users as required. Paste the Desktop client ID into Google Docs in the program. Authorization opens your regular browser and returns via a temporary 127.0.0.1 random-port listener at its root path with PKCE. Do not manually add an authorized Redirect URI for a Desktop client. Only the access token is kept in memory; reconnect after restart or expiry. See [คู่มือ Google OAuth](docs/google-oauth-th.md) for help with 400 redirect_uri_mismatch. Test with 2–3 chapters before bulk publishing.
 
 ## Current limitations
 

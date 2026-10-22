@@ -26,7 +26,7 @@ function loadGoogleIdentity(){
 }
 
 async function connect(clientId){
-  if(!/^\d+-[a-z0-9_-]+\.apps\.googleusercontent\.com$/.test(clientId.trim())) throw new Error('กรุณาใส่ OAuth Client ID ประเภท Web application ให้ถูกต้อง');
+  if(!/^\d+-[a-z0-9_-]+\.apps\.googleusercontent\.com$/.test(clientId.trim())) throw new Error('กรุณาใส่ OAuth Client ID ให้ถูกต้อง (โปรแกรม Desktop ต้องใช้ Client ID ประเภท Desktop app)');
   if(root.NovelDesktop?.googleConnect){
     token='';
     const response=await root.NovelDesktop.googleConnect(clientId.trim());

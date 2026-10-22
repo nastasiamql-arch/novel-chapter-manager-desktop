@@ -13,7 +13,7 @@ async function authorizeDesktop(clientId, openBrowser) {
   const codePromise = new Promise((resolve, reject) => { resolver = {resolve, reject}; });
   const server = createServer((req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1');
-    if (req.method !== 'GET' || url.pathname !== '/oauth/callback') {
+    if (req.method !== 'GET' || url.pathname !== '/') {
       res.writeHead(404).end('Not found'); return;
     }
     if (completed) { res.writeHead(409).end('Already completed'); return; }
@@ -36,7 +36,8 @@ async function authorizeDesktop(clientId, openBrowser) {
     server.listen(0, '127.0.0.1', resolve);
   });
   try {
-    const redirect_uri = 'http://127.0.0.1:' + server.address().port + '/oauth/callback';
+    // Desktop OAuth loopback redirect must be an origin with a random port (no extra path).
+    const redirect_uri = 'http://127.0.0.1:' + server.address().port;
     const auth = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     for (const [key, val] of Object.entries({
       client_id:clientId.trim(), redirect_uri, response_type:'code',
