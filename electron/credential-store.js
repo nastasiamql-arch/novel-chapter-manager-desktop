@@ -10,7 +10,7 @@ function validateCredentials(raw) {
       value.client_secret.length > 2048) {
     throw new Error('โปรดเลือก OAuth JSON ประเภท Desktop app จาก Google Cloud (ต้องมี installed.client_id และ client_secret)');
   }
-  return { version:1, client_id:value.client_id, client_secret:value.client_secret, refresh_token:'' };
+  return { version:2, client_id:value.client_id, client_secret:value.client_secret, refresh_token:'' };
 }
 function filename(dir) { return path.join(dir, 'google-oauth.enc'); }
 function encryptionReady(safeStorage) {
@@ -20,13 +20,13 @@ function encryptionReady(safeStorage) {
   }
 }
 function check(value) {
-  if (!value || value.version !== 1 || !CLIENT_ID.test(value.client_id) ||
+  if (!value || ![1,2].includes(value.version) || !CLIENT_ID.test(value.client_id) ||
       typeof value.client_secret !== 'string' || !value.client_secret ||
       typeof value.refresh_token !== 'string' ||
       value.client_secret.length > 2048 || value.refresh_token.length > 8192) {
     throw new Error('ข้อมูล OAuth ที่บันทึกไม่ถูกต้อง');
   }
-  return { version:1, client_id:value.client_id, client_secret:value.client_secret, refresh_token:value.refresh_token };
+  return { version:value.version, client_id:value.client_id, client_secret:value.client_secret, refresh_token:value.refresh_token };
 }
 async function load(dir,safeStorage) {
   let encrypted;
